@@ -236,6 +236,19 @@ async def websocket_endpoint(websocket: WebSocket):
 async def root():
     return {"message": "Hello World"}
 
+
+
+@app.put("/update")
+async def update(camera : CameraModel) -> CameraModel:
+    print(camera)
+    return camera
+
+
+@app.get("/status2")
+async def status2() -> CameraModel:
+    return CameraModel()
+
+
 @app.get("/test")
 async def root():
     return {"message": "Hello World"}

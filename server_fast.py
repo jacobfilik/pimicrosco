@@ -13,6 +13,82 @@ class AWBModeEnum(str, Enum):
     off = "off"
     auto = "auto"
 
+class AWB(BaseModel):
+    r_gain : float = 0
+    b_gain : float = 0
+    awb_mode : AWBModeEnum = AWBModeEnum.auto
+
+class Zoom(BaseModel):
+    x0 : float = 0
+    x1 : float = 1
+    y0 : float = 0
+    y1 : float = 1
+
+class Resolution(BaseModel):
+    width : int = 1920
+    height : int = 1080
+
+class ExpModeEnum(str,Enum):
+    auto = "auto"
+
+class Exposure(BaseModel):
+    compensation : int = 0
+    mode : ExpModeEnum = ExpModeEnum.auto
+    speed : int = 0
+
+class DRCEnum(str, Enum):
+    off = "off"
+    low = "low"
+    medium = "medium"
+    high = "high"
+
+class MeterModeEnum(str,Enum):
+    average = "average"
+
+
+class CameraModel(BaseModel):
+    awb : AWB = AWB()
+    brightness : int = 50
+    contrast : int = 0
+    digital_gain : float = 1.46
+    drc_strength : DRCEnum = DRCEnum.off
+    exposure : Exposure = Exposure()
+    exposure_compensation : int = 0
+    exposure_mode : ExpModeEnum = ExpModeEnum.auto
+    exposure_speed : int = 0
+    framerate :  int = 0
+    framerate_delta : int = 0
+    iso : int = 0
+    meter_mode : MeterModeEnum = MeterModeEnum.average
+    rotation : int = 0
+    saturation : int = 0
+    shutter_speed : int = 0
+    resolution : Resolution = Resolution()
+    zoom : Zoom = Zoom()
+class AWBModeEnum(str, Enum):
+    off = "off"
+    auto = "auto"
+
+class AWB(BaseModel):
+    r_gain : float = 0
+    b_gain : float = 0
+    awb_mode : AWBModeEnum = AWBModeEnum.auto
+
+class Zoom(BaseModel):
+    x0 : float = 0
+    x1 : float = 1
+    y0 : float = 0
+    y1 : float = 1
+
+class Resolution(BaseModel):
+    width : int = 1920
+    height : int = 1080
+
+class Exposure(BaseModel):
+    compensation : int = 0
+    mode : ExpModeEnum = ExpModeEnum.auto
+    speed : int = 0
+
 class DRCEnum(str, Enum):
     off = "off"
     low = "low"
@@ -26,13 +102,12 @@ class ExpModeEnum(str,Enum):
     auto = "auto"
 
 class CameraModel(BaseModel):
-    awb_gains_r : float = 0
-    awb_gains_b : float = 0
-    awb_mode : AWBModeEnum = AWBModeEnum.auto
+    awb : AWB = AWB()
     brightness : int = 50
     contrast : int = 0
     digital_gain : float = 1.46
     drc_strength : DRCEnum = DRCEnum.off
+    exposure : Exposure = Exposure()
     exposure_compensation : int = 0
     exposure_mode : ExpModeEnum = ExpModeEnum.auto
     exposure_speed : int = 0
@@ -40,26 +115,11 @@ class CameraModel(BaseModel):
     framerate_delta : int = 0
     iso : int = 0
     meter_mode : MeterModeEnum = MeterModeEnum.average
-    resolution_width : int = 1920
-    resolution_height : int = 1080
     rotation : int = 0
     saturation : int = 0
     shutter_speed : int = 0
-    zoom_x0 : float = 0
-    zoom_x1 : float = 1
-    zoom_y0 : float = 0
-    zoom_y1 : float = 1
-    
-
-
-
-
-
-
-
-
-
-
+    resolution : Resolution = Resolution()
+    zoom : Zoom = Zoom()
 
 #        status["awb_gains"] = (float(r),float(b))
 

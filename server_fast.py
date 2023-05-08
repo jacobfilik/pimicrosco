@@ -29,12 +29,19 @@ class Resolution(BaseModel):
     height : int = 1080
 
 class ExpModeEnum(str,Enum):
-    auto = "auto"
-
-class Exposure(BaseModel):
-    compensation : int = 0
-    mode : ExpModeEnum = ExpModeEnum.auto
-    speed : int = 0
+    auto = 'auto'
+    off = 'off'
+    night = 'night'
+    nightpreview = 'nightpreview'
+    backlight = 'backlight'
+    spotlight = 'spotlight'
+    sports = 'sports'
+    snow = 'snow'
+    beach = 'beach'
+    verylong = 'verylong'
+    fixedfps = 'fixedfps'
+    antishake = 'antishake'
+    fireworks = 'fireworks'
 
 class DRCEnum(str, Enum):
     off = "off"
@@ -43,8 +50,30 @@ class DRCEnum(str, Enum):
     high = "high"
 
 class MeterModeEnum(str,Enum):
-    average = "average"
+    average = 'average'
+    spot = 'spot'
+    backlit = 'backlit'
+    matrix = 'matrix'
 
+class ISOEnum(int,Enum):
+    iso000 = 0
+    iso100 = 100
+    iso200 = 200
+    iso320 = 320
+    iso400 = 400
+    iso500 = 500
+    iso640 = 640
+    iso800 = 800
+
+class Exposure(BaseModel):
+    compensation : int = 0
+    mode : ExpModeEnum = ExpModeEnum.auto
+    exposure_speed : int = 0
+    shutter_speed : int = 0
+    iso : ISOEnum = ISOEnum.iso100
+    digital_gain : float = 0.0
+    analog_gain : float = 0.0
+    drc_strength : DRCEnum = DRCEnum.off
 
 class CameraModel(BaseModel):
     awb : AWB = AWB()
@@ -268,6 +297,20 @@ async def status2() -> CameraModel:
 #    resolution : Resolution = Resolution()
 #    zoom : Zoom = Zoom()
     return cam
+
+@app.get("/exposure")
+async def exposure() -> Exposure:
+    exp = Exposure()
+    exp.iso = camera.iso
+    exp.analog_gain = float(camera.analog_gain)
+    exp.digital_gain = float(camera.digital_gain)
+    exp.exposure_speed = camera.exposure_speed
+    exp.shutter_speed = camera.shutter_speed
+    exp.compensation = camera.exposure_compensation
+    exp.mode = camera.exposure_mode
+    exp.drc_strength = camera.drc_strength
+ 
+    return exp
 
 
 @app.get("/test")

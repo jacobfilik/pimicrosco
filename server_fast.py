@@ -1,4 +1,3 @@
-import picamera
 from picamera import PiCamera, PiVideoFrameType
 import asyncio
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Response
@@ -9,9 +8,72 @@ import asyncio
 from pydantic import BaseModel
 from enum import Enum
 
+
+#'add_overlay'
+#'analog_gain'
+# 'annotate_background'
+# 'annotate_foreground'
+# 'annotate_frame_num'
+# 'annotate_text'
+# 'annotate_text_size'
+# 'awb_gains'
+# 'awb_mode'
+# 'brightness'
+# 'capture'
+# 'capture_continuous
+# 'capture_sequence'
+# 'clock_mode'
+# 'close'
+# 'closed'
+# 'color_effects'
+# 'contrast'
+# 'digital_gain',
+# 'drc_strength'
+# 'exif_tags',
+# 'exposure_compensation',
+# 'exposure_mode',
+# 'exposure_speed',
+# 'flash_mode',
+# 'frame',
+# 'framerate',
+# 'framerate_delta',
+# 'framerate_range',
+# 'hflip',
+# 'image_denoise',
+# 'image_effect',
+# 'image_effect_params',
+# 'iso',
+# 'led',
+# 'meter_mode',
+# 'overlays',
+# 'preview',
+# 'preview_alpha',
+# 'preview_fullscreen',
+# 'preview_layer',
+# 'preview_window',
+# 'previewing',
+# 'raw_format',
+# 'record_sequence',
+# 'recording',
+# 'remove_overlay',
+# 'request_key_frame',
+# 'resolution',
+# 'revision', 'rotation',
+# 'saturation', 'sensor_mode', 'sharpness', 'shutter_speed', 'split_recording',
+# 'start_preview', 'start_recording', 'still_stats', 'stop_preview', 'stop_recording',
+# 'timestamp', 'vflip', 'video_denoise', 'video_stabilization', 'wait_recording', 'zoom'
+
 class AWBModeEnum(str, Enum):
     off = "off"
     auto = "auto"
+    sunlight = 'sunlight'
+    cloudy = 'cloudy'
+    shade = 'shade'
+    tungsten = 'tungsten'
+    fluorescent = 'fluorescent'
+    incandescent = 'incandescent'
+    flash = 'flash'
+    horizon = 'horizon'
 
 class AWB(BaseModel):
     r_gain : float = 0
@@ -19,10 +81,10 @@ class AWB(BaseModel):
     mode : AWBModeEnum = AWBModeEnum.auto
 
 class Zoom(BaseModel):
-    x0 : float = 0
-    x1 : float = 1
-    y0 : float = 0
-    y1 : float = 1
+    x : float = 0
+    y : float = 0
+    h : float = 1
+    w : float = 1
 
 class Resolution(BaseModel):
     width : int = 1920
@@ -312,6 +374,18 @@ async def exposure() -> Exposure:
  
     return exp
 
+@app.put("/setexp")
+async def set_exposure(exp : Exposure) -> Exposure:
+    camera.iso = exp.iso
+
+    return exp
+
+@app.put("/zoom")
+async def set_zoom(zoom : Zoom) -> Zoom:
+    
+    camera.zoom = (zoom.x, zoom.y, zoom.w, zoom.h)
+
+    return zoom
 
 @app.get("/test")
 async def root():

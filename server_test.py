@@ -15,9 +15,9 @@ class ConnectionManager:
     async def connect(self, websocket):
         await websocket.accept()
         self.active_connections.append(websocket)
-        print("start task")
+        #print("start task")
         asyncio.create_task(self.monitor(websocket))
-        print("task running")
+        #print("task running")
  
     async def monitor(self, websocket):
         try:
@@ -38,7 +38,7 @@ class ConnectionManager:
     async def broadcast(self, message):
         for connection in self.active_connections:
             #print(connection.connected)
-            print((connection.client_state))
+            #print((connection.client_state))
             await connection.send_bytes(message)
 
 manager = ConnectionManager()
@@ -51,13 +51,16 @@ async def websocket_endpoint(websocket: WebSocket):
     buf = None
     with open("my_video.h264", "rb") as fh:
         buf = io.BytesIO(fh.read())
-    try:
-        while True:
+
+    while True and manager.active_connections:
+        try:
             buf.seek(0)
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.03)
             await manager.broadcast(buf)
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
+    #except WebSocketDisconnect:
+        except Exception as e:
+            print(f"Exception {e}")
+            manager.disconnect(websocket)
 
 
 @app.get("/snapimage")

@@ -62,18 +62,49 @@ class CameraConnectionManager:
         self.frameTypes = PiVideoFrameType()
         self.camera = camera
         self.buffer = io.BytesIO()
+        self.recording = False
+
+    def start_recording(self):
+        if not self.recording:
+            print("Start recording")
+            self.camera.start_recording(self, **recordingOptions)
+            self.recording = True
+
+    def stop_recording(self):
+        if self.recording:
+            self.camera.stop_recording()
+            self.recording = False
+
 
     async def connect(self, websocket):
         await websocket.accept()
         self.active_connections.append(websocket)
+        self.start_recording()
+        asyncio.create_task(self.monitor(websocket))
+        #print("task running")
+        
+ 
+    async def monitor(self, websocket):
+        try:
+            print("Waiting")
+            await websocket.receive_text()
+        except Exception as ex:
+            self.disconnect(websocket)
+            print("Exception")
 
     def disconnect(self, websocket):
+        print(f"Disconnect {websocket}")
         self.active_connections.remove(websocket)
+
+        if len(self.active_connections) == 0:
+            self.stop_recording()
+            print("Stop recording")
 
     def set_loop(self,loop):
         self.loop = loop
 
     def write(self,buf):
+
         if self.camera.frame.complete and self.camera.frame.frame_type != self.frameTypes.sps_header:
 
             self.buffer.write(buf)
@@ -102,27 +133,32 @@ async def websocket_endpoint(websocket: WebSocket):
     camManager.set_loop(asyncio.get_event_loop())
     await camManager.connect(websocket)
 
-    camera.start_recording(camManager, **recordingOptions) 
+    #move recording control to manager
+
     buf = None
     try:
         while True:
-            await asyncio.sleep(0.01)
-    except WebSocketDisconnect:
+            await asyncio.sleep(0.1)
+            if websocket not in camManager.active_connections:
+                print("Break loop")
+                break
+    except Exception:
+        print(f"Exception Disconnect {websocket}")
         camManager.disconnect(websocket)
 
-@app.websocket("/ws2/")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
-    buf = None
-    with open("my_video.h264", "rb") as fh:
-        buf = io.BytesIO(fh.read())
-    try:
-        while True:
-            buf.seek(0)
-            await asyncio.sleep(0.01)
-            await manager.broadcast(buf)
-    except WebSocketDisconnect:
-        manager.disconnect(websocket)
+# @app.websocket("/ws2/")
+# async def websocket_endpoint(websocket: WebSocket):
+#     await manager.connect(websocket)
+#     buf = None
+#     with open("my_video.h264", "rb") as fh:
+#         buf = io.BytesIO(fh.read())
+#     try:
+#         while True:
+#             buf.seek(0)
+#             await asyncio.sleep(0.01)
+#             await manager.broadcast(buf)
+#     except Exception:
+#         manager.disconnect(websocket)
 
 @app.get("/")
 async def root():
@@ -159,8 +195,8 @@ async def status2() -> CameraModel:
 #    zoom : Zoom = Zoom()
     return cam
 
-@app.get("/exposure")
-async def exposure() -> Exposure:
+
+def build_exp_from_camera(camera):
     exp = Exposure()
     exp.iso = camera.iso
     exp.analog_gain = float(camera.analog_gain)
@@ -170,14 +206,26 @@ async def exposure() -> Exposure:
     exp.compensation = camera.exposure_compensation
     exp.mode = camera.exposure_mode
     exp.drc_strength = camera.drc_strength
- 
+
     return exp
+
+@app.get("/exposure")
+async def exposure() -> Exposure:
+    return build_exp_from_camera(camera)
 
 @app.put("/setexp")
 async def set_exposure(exp : Exposure) -> Exposure:
     camera.iso = exp.iso
+    # exp.analog_gain = float(camera.analog_gain)
+    # exp.digital_gain = float(camera.digital_gain)
+    # camera.exposure_speed = exp.exposure_speed
+    camera.shutter_speed = exp.shutter_speed 
+    camera.exposure_compensation = exp.compensation
+    camera.exposure_mode = exp.mode
+    camera.drc_strength = exp.drc_strength
+    print(f"Exposure set {exp}")
 
-    return exp
+    return build_exp_from_camera(camera)
 
 @app.put("/zoom")
 async def set_zoom(zoom : Zoom) -> Zoom:
